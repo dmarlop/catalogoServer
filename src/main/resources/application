@@ -1,0 +1,5 @@
+product:
+  server:
+    url: http://localhost:8088/productoServer/api
+    username: admin
+    password: tfgdavidmarin2025

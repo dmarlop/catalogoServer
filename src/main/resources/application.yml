@@ -1,0 +1,19 @@
+product:
+  server:
+    # Usa esta URL en producción (Docker)
+    url: http://productoserver:8088/productoServer/api
+
+    # Usa esta URL en desarrollo local
+    # url: http://localhost:8088/productoServer/api
+
+    username: admin
+    password: tfgdavidmarin2025
+
+spring:
+  application:
+    name: catalogoServer
+
+  datasource:
+    url: jdbc:mariadb://mariadb2:3306/catalogosdb
+    username: root
+    password: secreta
