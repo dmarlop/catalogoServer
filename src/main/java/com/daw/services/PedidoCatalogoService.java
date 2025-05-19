@@ -53,6 +53,7 @@ public class PedidoCatalogoService {
             .orElseThrow(() -> new RuntimeException("Catálogo no encontrado con ID: " + createDto.getCatalogoId()));
 
         PedidoCatalogo pedido = new PedidoCatalogo();
+        
         pedido.setId(UUID.randomUUID().toString());
         pedido.setCatalogo(catalogo);
         pedido.setCodUsuario(createDto.getCodUsuario());
@@ -207,6 +208,7 @@ public class PedidoCatalogoService {
         pedido.setEstado(PedidoCatalogoEstado.Abierto);
         pedido.setFecha(LocalDateTime.now());
         pedido.setCatalogo(catalogo);
+        pedido.setCodDireccion(createDto.getCodDireccion());
 
        
         List<LineaPedidoCatalogo> lineas = new ArrayList<>();

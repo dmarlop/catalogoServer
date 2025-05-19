@@ -12,7 +12,7 @@ public class PedidoCompletoCreateDto {
     private String codUsuario;
     private String catalogoId;
     private List<LineaPedidoCreateDto> lineas;
-    
+    private String codDireccion; 
     @Getter
     @Setter
     public static class LineaPedidoCreateDto {

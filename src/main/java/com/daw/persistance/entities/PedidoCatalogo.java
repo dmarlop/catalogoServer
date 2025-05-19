@@ -43,6 +43,8 @@ public class PedidoCatalogo {
 
     @Column(name = "cod_usuario", length = 36, nullable = false)
     private String codUsuario;
+    @Column(name = "cod_direccion")
+    private String codDireccion;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false, 
