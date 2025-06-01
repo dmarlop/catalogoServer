@@ -110,6 +110,7 @@ public class ProductoCatalogoService {
         entidad.setSubcategoriaId(remoto.getSubcategoriaId());
         entidad.setSubcategoriaNombre(sub.getNombre());
         entidad.setCodigoBarras(remoto.getCodigoBarras());
+        entidad.setUnidadDeVenta(remoto.getUnidadDeVenta());
 
         try {
             entidad.setCaracteristicas(

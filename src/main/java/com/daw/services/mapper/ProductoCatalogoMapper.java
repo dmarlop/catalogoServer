@@ -62,7 +62,7 @@ public class ProductoCatalogoMapper {
         dto.setSubcategoriaNombre(entity.getSubcategoriaNombre());
         dto.setStartTime(entity.getCreatedAt());
         dto.setModifyTime(entity.getUpdatedAt());
-
+        dto.setUnidadDeVenta(entity.getUnidadDeVenta());
         return dto;
     }
 }

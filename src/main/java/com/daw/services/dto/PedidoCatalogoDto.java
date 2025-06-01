@@ -11,6 +11,7 @@ public class PedidoCatalogoDto {
     private String id;
     private String codUsuario;
     private String estado;
+    private String direccion;
     private LocalDateTime fecha;
     private TotalDto totalPedidoBase;
     private TotalDto totalPedido;

@@ -18,6 +18,8 @@ public interface PedidoCatalogoRepository extends JpaRepository<PedidoCatalogo, 
 
     // 1. Buscar pedidos por usuario
     List<PedidoCatalogo> findByCodUsuario(String codUsuario);
+    
+    
 
     // 2. Buscar pedidos por estado (versión corregida)
     List<PedidoCatalogo> findByEstado(PedidoCatalogoEstado estado);

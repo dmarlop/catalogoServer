@@ -63,7 +63,8 @@ public class ProductoCatalogo {
 
     @Column(name = "caracteristicas", columnDefinition = "LONGTEXT")
     private String caracteristicas;
-
+    @Column(name = "unidad_venta")
+    private String unidadDeVenta;
     @Column(name = "ingredientes_flag", nullable = false)
     private Boolean ingredientesFlag;
 
@@ -75,6 +76,8 @@ public class ProductoCatalogo {
 
     @OneToMany(mappedBy = "productoCatalogo", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LineaPedidoCatalogo> lineasPedido = new ArrayList<>();
+
+	
 
     // Getters y setters omitidos por brevedad, pero deben incluir los nuevos campos
 }

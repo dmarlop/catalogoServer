@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.daw.persistance.entities.PedidoCatalogo;
 import com.daw.persistance.enums.PedidoCatalogoEstado;
 import com.daw.services.PedidoCatalogoService;
+import com.daw.services.dto.ActualizarCantidadDto;
+import com.daw.services.dto.EstadoDto;
 import com.daw.services.dto.PedidoCatalogoCreateDto;
 import com.daw.services.dto.PedidoCatalogoDto;
 import com.daw.services.dto.PedidoCompletoCreateDto;
@@ -61,11 +63,18 @@ public class PedidoCatalogoController {
         PedidoCatalogoDto dto = this.mapper.toDto(pedido);
         return ResponseEntity.ok(dto);
     }
-   
+    @PutMapping("/{pedidoId}")
+    @ResponseStatus(HttpStatus.OK)
+    public PedidoCatalogoDto actualizarPedidoCompleto(
+            @PathVariable String pedidoId,
+            @RequestBody PedidoCompletoCreateDto dto) {
+        return pedidoService.actualizarPedidoCompleto(pedidoId, dto);
+    }
+
 
     @PutMapping("/{pedidoId}/estado")
     public ResponseEntity<PedidoCatalogo> actualizarEstadoPedido(
-        @PathVariable String pedidoId, @RequestBody String nuevoEstado) {
+        @PathVariable String pedidoId, @RequestBody EstadoDto nuevoEstado) {
         PedidoCatalogo pedido = pedidoCatalogoService.actualizarEstadoPedido(pedidoId, nuevoEstado);
         return ResponseEntity.ok(pedido);
     }
@@ -73,6 +82,20 @@ public class PedidoCatalogoController {
     public List<PedidoCatalogoDto> obtenerPedidosPorEstado(@PathVariable PedidoCatalogoEstado estado) {
         return pedidoCatalogoService.obtenerPedidosPorEstados(estado);
     }
+    
+    @GetMapping("/filtrar")
+    public ResponseEntity<List<PedidoCatalogoDto>> obtenerPedidosPorVariosEstados(
+            @RequestParam(required = false) Set<String> estados) {
+
+        // Si no se especifica ningún estado, usamos los más comunes
+        if (estados == null || estados.isEmpty()) {
+            estados = Set.of("Abierto", "Montando", "Enviado");
+        }
+
+        List<PedidoCatalogoDto> pedidos = pedidoCatalogoService.obtenerPedidosPorEstados(estados);
+        return ResponseEntity.ok(pedidos);
+    }
+
 
     @PostMapping("/{pedidoId}/productos")
     public ResponseEntity<PedidoCatalogoDto> agregarProductoALinea(
@@ -119,6 +142,16 @@ public class PedidoCatalogoController {
         boolean tienePedidoAbierto = pedidoService.tieneUsuarioPedidoAbierto(usuarioId, catalogoId);
         return ResponseEntity.ok(Collections.singletonMap("tienePedidoAbierto", tienePedidoAbierto));
     }
+
+    @PutMapping("/{pedidoId}/productos/cantidad")
+    public ResponseEntity<Void> actualizarCantidadesProductos(
+        @PathVariable String pedidoId,
+        @RequestBody List<ActualizarCantidadDto> actualizaciones) {
+
+        pedidoCatalogoService.actualizarVariasCantidades(pedidoId, actualizaciones);
+        return ResponseEntity.ok().build();
+    }
+
 
    
 }

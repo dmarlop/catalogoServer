@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
+import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -85,9 +85,16 @@ public class PedidoCatalogoService {
             .collect(Collectors.toList());
     }
 
-    public PedidoCatalogo actualizarEstadoPedido(String pedidoId, String nuevoEstado) {
+    public PedidoCatalogo actualizarEstadoPedido(String pedidoId, EstadoDto nuevoEstado) {
         PedidoCatalogo pedido = obtenerPedidoPorId(pedidoId);
-        pedido.setEstado(PedidoCatalogoEstado.valueOf(nuevoEstado));
+        String estadoComoTexto = nuevoEstado.getNuevoEstado();
+
+        PedidoCatalogoEstado estadoEnum = Arrays.stream(PedidoCatalogoEstado.values())
+            .filter(e -> e.name().equalsIgnoreCase(estadoComoTexto)) // ⚠️ ignora mayúsculas/minúsculas
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Estado no válido: " + estadoComoTexto));
+
+        pedido.setEstado(estadoEnum);
         return pedidoCatalogoRepository.save(pedido);
     }
 
@@ -208,7 +215,8 @@ public class PedidoCatalogoService {
         pedido.setEstado(PedidoCatalogoEstado.Abierto);
         pedido.setFecha(LocalDateTime.now());
         pedido.setCatalogo(catalogo);
-        pedido.setCodDireccion(createDto.getCodDireccion());
+        pedido.setDireccion(createDto.getDireccion());
+        pedido.setEntrega(createDto.getEntrega());
 
        
         List<LineaPedidoCatalogo> lineas = new ArrayList<>();
@@ -244,6 +252,61 @@ public class PedidoCatalogoService {
 
         return mapper.toDto(pedidoGuardado);
     }
+  
+    @Transactional
+    public PedidoCatalogoDto actualizarPedidoCompleto(String pedidoId, PedidoCompletoCreateDto dto) {
+        PedidoCatalogo pedido = pedidoCatalogoRepository.findById(pedidoId)
+            .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
+
+        // 🔥 Eliminar todas las líneas anteriores del pedido
+        lineaPedidoCatalogoRepository.deleteAllByPedidoId(pedidoId);
+
+        // 🔄 Actualizar datos básicos del pedido
+        pedido.setDireccion(dto.getDireccion());
+        pedido.setEntrega(dto.getEntrega());
+
+        List<LineaPedidoCatalogo> nuevasLineas = new ArrayList<>();
+        BigDecimal totalBase = BigDecimal.ZERO;
+
+        for (PedidoCompletoCreateDto.LineaPedidoCreateDto lineaDto : dto.getLineas()) {
+            ProductoCatalogo producto = productoCatalogoRepository.findById(lineaDto.getCodProductoCatalogo())
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + lineaDto.getCodProductoCatalogo()));
+
+            LineaPedidoCatalogo linea = new LineaPedidoCatalogo();
+            linea.setId(UUID.randomUUID().toString());
+            linea.setPedido(pedido);
+            linea.setProductoCatalogo(producto);
+            linea.setCantidadPedida(lineaDto.getCantidadPedida());
+            linea.setCantidadEntregada(lineaDto.getCantidadPedida());
+            linea.setPrecioUnitario(producto.getPvp());
+
+            nuevasLineas.add(linea);
+            totalBase = totalBase.add(producto.getPvp().multiply(lineaDto.getCantidadPedida()));
+        }
+
+        // 🧮 Calcular totales
+        BigDecimal totalIva = totalBase.multiply(new BigDecimal("0.21"));
+        BigDecimal totalTotal = totalBase.add(totalIva);
+
+        pedido.setTotalBase(totalBase);
+        pedido.setTotalIva(totalIva);
+        pedido.setTotalTotal(totalTotal);
+
+        // 💾 Guardar el pedido actualizado
+        PedidoCatalogo actualizado = pedidoCatalogoRepository.save(pedido);
+
+        // 💾 Guardar las nuevas líneas
+        lineaPedidoCatalogoRepository.saveAll(nuevasLineas);
+
+        // 🔁 Devolver DTO actualizado
+        return mapper.toDto(actualizado);
+    }
+
+
+
+
+
+
     
     public boolean tieneUsuarioPedidoAbierto(String usuarioId, String catalogoId) {
         if (usuarioId == null || catalogoId == null) {
@@ -265,4 +328,44 @@ public class PedidoCatalogoService {
         
         return !pedidos.isEmpty();
     }
+    
+    @Transactional
+    public void actualizarVariasCantidades(String pedidoId, List<ActualizarCantidadDto> actualizaciones) {
+        PedidoCatalogo pedido = obtenerPedidoPorId(pedidoId);
+        if (pedido.getEstado() != PedidoCatalogoEstado.Abierto) {
+            throw new IllegalStateException("Solo se pueden modificar pedidos en estado Abierto");
+        }
+        // Actualizar cantidades
+        for (ActualizarCantidadDto dto : actualizaciones) {
+            for (LineaPedidoCatalogo linea : pedido.getLineas()) {
+                if (linea.getProductoCatalogo().getId().equals(dto.getProductoCatalogoId())) {
+                    linea.setCantidadPedida(dto.getNuevaCantidad());
+                }
+            }
+        }
+
+        // Actualizar totales
+        actualizarTotalesPedido(pedido);
+
+        // Cambiar estado si está Abierto
+        if (pedido.getEstado() == PedidoCatalogoEstado.Abierto) {
+            pedido.setEstado(PedidoCatalogoEstado.Montando);
+        }
+
+        pedidoCatalogoRepository.save(pedido);
+    }
+    
+    public List<PedidoCatalogoDto> obtenerPedidosPorEstados(Set<String> estadosStr) {
+        Set<PedidoCatalogoEstado> estadosEnum = estadosStr.stream()
+            .map(PedidoCatalogoEstado::valueOf)
+            .collect(Collectors.toSet());
+
+        List<PedidoCatalogo> pedidos = pedidoCatalogoRepository.findByEstadoIn(estadosEnum);
+
+        return pedidos.stream()
+            .map(mapper::toDto)
+            .collect(Collectors.toList());
+    }
+
+
 }

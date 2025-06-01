@@ -12,6 +12,7 @@ public class ProductoRemoteDto {
     private String id;
     private String codProducto;
     private String nombre;
+    private String unidadDeVenta;
     private String nombreComercial;
     private String variedad;
     private String codigoBarras;
@@ -23,4 +24,5 @@ public class ProductoRemoteDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     // getters y setters...
+	
 }

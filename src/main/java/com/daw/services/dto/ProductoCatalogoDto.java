@@ -13,6 +13,7 @@ public class ProductoCatalogoDto {
     private String id;
     private String productoId;
     private String nombreComercial;
+    private String unidadDeVenta;
     private BigDecimal pvp;
     private BigDecimal iva;
     private boolean ingredientes;

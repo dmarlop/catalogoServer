@@ -43,12 +43,13 @@ public class PedidoCatalogo {
 
     @Column(name = "cod_usuario", length = 36, nullable = false)
     private String codUsuario;
-    @Column(name = "cod_direccion")
-    private String codDireccion;
-
+    @Column(name = "direccion")
+    private String direccion;
+    @Column(name = "entrega")
+    private int entrega;
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false, 
-            columnDefinition = "enum('Abierto','Cerrado','Montando','Enviado','Recepcionado','Pagado','Cancelado')")
+            columnDefinition = "enum('Abierto','Tramitar','Cerrado','Montando','Enviado','Recepcionado','Pagado','Cancelado')")
     private PedidoCatalogoEstado estado;
 
     @Column(name = "fecha", nullable = false)

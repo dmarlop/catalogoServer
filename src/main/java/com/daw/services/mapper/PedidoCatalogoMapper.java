@@ -33,6 +33,7 @@ public class PedidoCatalogoMapper {
         if (dto == null) return null;
         
         PedidoCatalogo entity = new PedidoCatalogo();
+        
         entity.setCodUsuario(dto.getCodUsuario());
         entity.setEstado(dto.getEstado() != null ? 
                        PedidoCatalogoEstado.valueOf(dto.getEstado()) : 
@@ -54,9 +55,10 @@ public class PedidoCatalogoMapper {
         PedidoCatalogoDto dto = new PedidoCatalogoDto();
         dto.setId(entity.getId());
         dto.setCodUsuario(entity.getCodUsuario());
+        dto.setDireccion(entity.getDireccion());
         dto.setEstado(entity.getEstado().name());
         dto.setFecha(entity.getFecha());
-
+        
         // Mapeo seguro de totales
         if (entity.getTotalBase() != null) {
             dto.setTotalPedidoBase(new TotalDto(
